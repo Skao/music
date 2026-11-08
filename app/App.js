@@ -15,7 +15,7 @@ import { OSMD_HTML } from './src/scoreHtml.js';
 
 const SETTINGS_KEY = 'pianoscribe.settings';
 const LAST_KEY = 'pianoscribe.last';
-const DEFAULTS = { serverUrl: 'http://192.168.0.10:8765', token: '', splitPitch: 60, grid: 4 };
+const DEFAULTS = { serverUrl: 'https://music.catchweir.com', token: '', splitPitch: 60, grid: 4 };
 
 // Mono, 48 kHz, and on Android the UNPROCESSED source so the OS does not run
 // its speech-tuned gain control and noise suppression over the piano. Devices

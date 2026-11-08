@@ -26,3 +26,7 @@ venv/
 *.log
 .DS_Store
 Thumbs.db
+
+# desktop preview output
+app/sample.html
+app/sample.musicxml

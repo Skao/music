@@ -58,6 +58,64 @@ export const OSMD_HTML = `<!doctype html>
     });
   };
 
+  // Playback: a plain Web Audio tone per note, enough to hear whether the
+  // melody is right. Two oscillators (fundamental + quiet octave) through a
+  // percussive envelope, scheduled all at once on the context clock.
+  var audio = null;
+  var stopTimer = null;
+
+  window.play = function (events, tempoScale) {
+    window.stop();
+    if (!events || !events.length) { post({ type: 'stopped' }); return; }
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) { post({ type: 'error', message: 'No Web Audio in this WebView' }); return; }
+    audio = new Ctx();
+    var scale = tempoScale || 1;
+    var master = audio.createGain();
+    master.gain.value = 0.5;
+    var comp = audio.createDynamicsCompressor();
+    master.connect(comp);
+    comp.connect(audio.destination);
+    var start = audio.currentTime + 0.15;
+    var end = 0;
+    for (var i = 0; i < events.length; i++) {
+      var e = events[i];
+      var t = start + e.t * scale;
+      var dur = Math.max(0.08, Math.min(e.dur * scale, 4));
+      var vel = Math.max(0.15, Math.min(1, (e.velocity || 80) / 127));
+      var freq = 440 * Math.pow(2, (e.pitch - 69) / 12);
+      var g = audio.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.35 * vel, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.12 * vel, t + Math.min(0.25, dur * 0.5));
+      g.gain.setValueAtTime(0.12 * vel, t + dur - 0.03 > t + 0.01 ? t + dur - 0.03 : t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05);
+      g.connect(master);
+      var o1 = audio.createOscillator();
+      o1.type = 'triangle';
+      o1.frequency.value = freq;
+      o1.connect(g);
+      var o2g = audio.createGain();
+      o2g.gain.value = 0.18;
+      var o2 = audio.createOscillator();
+      o2.type = 'sine';
+      o2.frequency.value = freq * 2;
+      o2.connect(o2g);
+      o2g.connect(g);
+      o1.start(t); o2.start(t);
+      o1.stop(t + dur + 0.1); o2.stop(t + dur + 0.1);
+      if (t + dur > end) end = t + dur;
+    }
+    if (audio.state === 'suspended') audio.resume().catch(function () {});
+    post({ type: 'playing' });
+    stopTimer = setTimeout(window.stop, Math.ceil((end - audio.currentTime + 0.3) * 1000));
+  };
+
+  window.stop = function () {
+    if (stopTimer) { clearTimeout(stopTimer); stopTimer = null; }
+    if (audio) { try { audio.close(); } catch (e) {} audio = null; post({ type: 'stopped' }); }
+  };
+
   window.setZoom = function (z) {
     zoom = z;
     if (osmd && osmd.IsReadyToRender()) { osmd.zoom = z; osmd.render(); }
@@ -68,6 +126,8 @@ export const OSMD_HTML = `<!doctype html>
       var msg = JSON.parse(ev.data);
       if (msg.type === 'score') window.setScore(msg.xml);
       if (msg.type === 'zoom') window.setZoom(msg.zoom);
+      if (msg.type === 'play') window.play(msg.events, msg.tempoScale);
+      if (msg.type === 'stop') window.stop();
     } catch (e) {}
   }
   document.addEventListener('message', onMessage); // Android

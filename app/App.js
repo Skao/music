@@ -270,6 +270,8 @@ function ScoreScreen({ result, settings, updateSettings, onBack }) {
   const [bpm, setBpm] = useState(result.bpm || 0);
   const [zoom, setZoom] = useState(0.6);
   const [rendered, setRendered] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [playRaw, setPlayRaw] = useState(false); // false = the score as written, true = what the model heard
 
   const score = useMemo(
     () => buildScore(result.notes, {
@@ -301,6 +303,8 @@ function ScoreScreen({ result, settings, updateSettings, onBack }) {
       const msg = JSON.parse(ev.nativeEvent.data);
       if (msg.type === 'ready') setWebReady(true);
       if (msg.type === 'rendered') setRendered(true);
+      if (msg.type === 'playing') setPlaying(true);
+      if (msg.type === 'stopped') setPlaying(false);
       if (msg.type === 'error') Alert.alert('Render error', msg.message);
     } catch {}
   };
@@ -317,6 +321,15 @@ function ScoreScreen({ result, settings, updateSettings, onBack }) {
   };
 
   const effectiveBpm = Math.round(score.bpm);
+
+  const togglePlay = () => {
+    if (playing) return send({ type: 'stop' });
+    // The written events are already at the score's tempo; the raw ones are real time,
+    // stretched by the same ratio when the tempo is changed from the server's guess.
+    const tempoScale = playRaw && result.bpm ? result.bpm / score.bpm : 1;
+    send({ type: 'play', events: playRaw ? score.raw : score.written, tempoScale });
+  };
+  useEffect(() => { if (playing) send({ type: 'stop' }); }, [score]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -336,11 +349,24 @@ function ScoreScreen({ result, settings, updateSettings, onBack }) {
         style={styles.web}
         javaScriptEnabled
         domStorageEnabled
+        mediaPlaybackRequiresUserAction={false}
         setBuiltInZoomControls={false}
         scalesPageToFit={false}
       />
 
       <View style={styles.controls}>
+        <View style={styles.stepper}>
+          <Text style={styles.stepperLabel}>Play</Text>
+          <Pressable style={[styles.playButton, playing && styles.stop]} onPress={togglePlay} disabled={!webReady}>
+            <Text style={styles.exportText}>{playing ? '■ Stop' : '▶ Play'}</Text>
+          </Pressable>
+          <Pressable style={[styles.stepButton, !playRaw && styles.stepButtonOn]} onPress={() => setPlayRaw(false)}>
+            <Text style={[styles.stepText, !playRaw && styles.stepTextOn]}>Score</Text>
+          </Pressable>
+          <Pressable style={[styles.stepButton, playRaw && styles.stepButtonOn]} onPress={() => setPlayRaw(true)}>
+            <Text style={[styles.stepText, playRaw && styles.stepTextOn]}>Heard</Text>
+          </Pressable>
+        </View>
         <Stepper
           label="Tempo"
           value={`${effectiveBpm}`}
@@ -420,6 +446,9 @@ const styles = StyleSheet.create({
   stepper: { flexDirection: 'row', alignItems: 'center', paddingVertical: 3, gap: 6 },
   stepperLabel: { width: 52, color: '#555', fontSize: 13 },
   stepButton: { minWidth: 40, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, backgroundColor: '#f0f2f5', alignItems: 'center' },
+  stepButtonOn: { backgroundColor: '#dbe6fb' },
+  stepTextOn: { color: '#1b6ef3', fontWeight: '600' },
+  playButton: { minWidth: 84, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, backgroundColor: '#1b6ef3', alignItems: 'center' },
   stepText: { fontSize: 16 },
   stepValue: { minWidth: 56, textAlign: 'center', fontSize: 15, fontVariant: ['tabular-nums'] },
   exports: { flexDirection: 'row', gap: 8, padding: 8 },

@@ -1,0 +1,17 @@
+# Pianoscribe transcription service.
+#
+# Install torch first from the CPU wheel index so pip does not pull the CUDA build:
+#   pip install torch --index-url https://download.pytorch.org/whl/cpu
+# then:
+#   pip install -r requirements.txt
+#
+# ffmpeg must be on PATH (apt install ffmpeg).
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+numpy
+librosa>=0.10
+piano_transcription_inference>=0.0.5
+audioread  # imported by piano_transcription_inference; librosa >= 0.10 no longer depends on it
+# Optional lighter model (PIANOSCRIBE_MODEL=basicpitch). Uncomment to install:
+# basic-pitch>=0.4

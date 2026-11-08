@@ -1,0 +1,27 @@
+# systemd unit for the transcription server. Installed by setup.sh to /etc/systemd/system/.
+[Unit]
+Description=Pianoscribe transcription server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pianoscribe
+Group=pianoscribe
+WorkingDirectory=/opt/pianoscribe/server
+# Token, model choice and limits: see /etc/pianoscribe/music.env (copied from .env.example by setup.sh).
+EnvironmentFile=/etc/pianoscribe/music.env
+# The model checkpoint and pip caches live here, not in a home directory.
+Environment=HOME=/var/lib/pianoscribe
+Environment=XDG_CACHE_HOME=/var/lib/pianoscribe/cache
+Environment=OMP_NUM_THREADS=2
+ExecStart=/opt/pianoscribe/venv/bin/uvicorn pianoscribe_server:app --host 127.0.0.1 --port 8765 --workers 1 --timeout-keep-alive 120
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/lib/pianoscribe
+
+[Install]
+WantedBy=multi-user.target

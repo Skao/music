@@ -1,0 +1,14 @@
+# Caddy fronts the transcription server: TLS from Let's Encrypt, renewed by itself, and a proxy to
+# uvicorn on 127.0.0.1:8765. setup.sh replaces MUSIC_HOST with the real host name and appends this
+# block to /etc/caddy/Caddyfile, so it can sit beside the road server's block on the same box.
+MUSIC_HOST {
+	encode zstd gzip
+	request_body {
+		max_size 64MB
+	}
+	reverse_proxy 127.0.0.1:8765 {
+		transport http {
+			response_header_timeout 10m
+		}
+	}
+}

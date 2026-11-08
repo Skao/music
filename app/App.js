@@ -158,7 +158,8 @@ function RecordScreen({ settings, updateSettings, phase, setPhase, status, setSt
     setStatus('Uploading…');
     try {
       const form = new FormData();
-      form.append('file', { uri, name: 'recording.m4a', type: 'audio/mp4' });
+      // Expo's fetch (SDK 58) streams a File part itself; the old { uri, name, type } shape is not accepted.
+      form.append('file', new File(uri), 'recording.m4a');
       const headers = settings.token ? { Authorization: `Bearer ${settings.token}` } : {};
       setStatus('Transcribing on the server…');
       const res = await fetch(`${settings.serverUrl.replace(/\/$/, '')}/transcribe`, { method: 'POST', headers, body: form });

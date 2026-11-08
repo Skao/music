@@ -17,6 +17,14 @@ const SETTINGS_KEY = 'pianoscribe.settings';
 const LAST_KEY = 'pianoscribe.last';
 const DEFAULTS = { serverUrl: 'https://music.catchweir.com', token: '', splitPitch: 60, grid: 4 };
 
+// What the user typed, made into an absolute URL: scheme added when missing, trailing slashes dropped.
+function serverBase(raw) {
+  let s = (raw || '').trim().replace(/\/+$/, '');
+  if (!s) s = DEFAULTS.serverUrl;
+  if (!/^https?:\/\//i.test(s)) s = 'https://' + s;
+  return s;
+}
+
 // Mono, 48 kHz, and on Android the UNPROCESSED source so the OS does not run
 // its speech-tuned gain control and noise suppression over the piano. Devices
 // that lack UNPROCESSED fall back through the list in startRecording().
@@ -161,8 +169,9 @@ function RecordScreen({ settings, updateSettings, phase, setPhase, status, setSt
       // Expo's fetch (SDK 58) streams a File part itself; the old { uri, name, type } shape is not accepted.
       form.append('file', new File(uri), 'recording.m4a');
       const headers = settings.token ? { Authorization: `Bearer ${settings.token}` } : {};
-      setStatus('Transcribing on the server…');
-      const res = await fetch(`${settings.serverUrl.replace(/\/$/, '')}/transcribe`, { method: 'POST', headers, body: form });
+      const url = `${serverBase(settings.serverUrl)}/transcribe`;
+      setStatus(`Transcribing on ${url}…`);
+      const res = await fetch(url, { method: 'POST', headers, body: form });
       if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
       const data = await res.json();
       if (!data.notes || !data.notes.length) {

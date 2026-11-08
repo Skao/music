@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Pianoscribe",
+    "slug": "pianoscribe",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.pianoscribe.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Pianoscribe listens to piano music to transcribe it."
+      }
+    },
+    "android": {
+      "package": "com.pianoscribe.app",
+      "permissions": ["android.permission.RECORD_AUDIO"],
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-audio",
+        { "microphonePermission": "Pianoscribe listens to piano music to transcribe it." }
+      ],
+      "expo-sharing",
+      [
+        "expo-build-properties",
+        { "android": { "usesCleartextTraffic": true } }
+      ]
+    ]
+  }
+}

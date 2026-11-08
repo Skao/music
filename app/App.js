@@ -239,7 +239,6 @@ function RecordScreen({ settings, updateSettings, phase, setPhase, status, setSt
           onChangeText={(v) => updateSettings({ token: v.trim() })}
           autoCapitalize="none"
           autoCorrect={false}
-          secureTextEntry
           placeholder="token (PIANOSCRIBE_TOKEN on the server)"
         />
         <Text style={styles.hint}>

@@ -226,6 +226,7 @@ function RecordScreen({ settings, updateSettings, phase, setPhase, status, setSt
         <Text style={styles.section}>Server</Text>
         <TextInput
           style={styles.input}
+          placeholderTextColor="#999"
           value={settings.serverUrl}
           onChangeText={(v) => updateSettings({ serverUrl: v.trim() })}
           autoCapitalize="none"
@@ -235,6 +236,7 @@ function RecordScreen({ settings, updateSettings, phase, setPhase, status, setSt
         />
         <TextInput
           style={styles.input}
+          placeholderTextColor="#999"
           value={settings.token}
           onChangeText={(v) => updateSettings({ token: v.trim() })}
           autoCapitalize="none"
@@ -397,7 +399,7 @@ const styles = StyleSheet.create({
   meterTrack: { width: '100%', height: 14, backgroundColor: '#eee', borderRadius: 7, overflow: 'hidden' },
   meterFill: { height: '100%' },
   section: { fontSize: 13, fontWeight: '600', color: '#888', textTransform: 'uppercase', marginTop: 10 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, fontSize: 15 },
+  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, fontSize: 15, color: '#111', backgroundColor: '#fff' },
   hint: { color: '#888', fontSize: 12, lineHeight: 17 },
   toolbar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 6, borderBottomWidth: 1, borderColor: '#eee' },
   toolButton: { padding: 8 },
